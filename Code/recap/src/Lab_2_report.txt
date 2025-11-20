@@ -1,0 +1,51 @@
+Dialogue Systems 2 Lab 2
+
+Discussed the lab with TAs and classmates.
+
+1. Implement handling of ASR_NOINPUT.
+
+Within the Asking_User state, there is an 'on: ASR_NOINPUT' condition. I added a system message with the instruction: 'If the user does not respond, repeat the last utterance uttered by the LLM and ask the user if their hardware is functioning properly'. I wanted the LLM to say the last thing they had said before and to also add a question about the user's hardware. I also added an assistant message: 'Are your microphone and speakers and keyboard working properly?'. I tried to reference the LLMs last utterance in the array here as well, but that got messy quickly. I have to say that this seemed to work quite smoothly at times, but less so other times. Problems included that the LLM would repeat the last utterance, but not ask about the user's hardware or vice versa. Other times it would get stuck in a temporary 'recognizing' loop before finally producing the intended utterances. When I would only add a user message (instead of both a system and assistant message), things seemed to run more consistently. That would just be like continuing the conversation for the LLM (as it then receives a message from their interlocutor just like they would in a conversation). I'm not entirely sure if they way I'm looping through the messages array works with adding a system message. Overall the behaviour seemed a little unpredictable. 
+
+Examples of incorrect responses to user silence: 
+
+- "(If there's no response from user: repeat last message) Are my microphone and speaker functioning correctly including clicking on keys with each tap . (Note : Please respond to continue conversation.)  Let me rephrase it for you, are we having any technical issues here?".
+
+- "Repeated last utterance!", without actually repeating the last utterance.
+
+- "I'm still here, ready to chat! (repeating the previous message) The word "cat" is spelled C-A-T."
+
+
+2. Short exploration of parameters and models 
+
+Before adjusting the parameters, the model was not very concise (despite the instruction to be). It also included messages before the intended message, like "you prefer" or "for short". If I asked it to tell me anything, it repeated the same few anecdotes. I wanted to see if adjusting the parameters repeat_last_n, repeat_penalty, temperature, top_k and top_p to more conservative values would solve these issues. Repeat_last_n and repeat_penalty seemed to make the answers less repetitive and more diverse. However, they also seemed quite erratic and less grammatically correct, seen from these initial greeting examples:
+
+- "if you'd like to get started! What's on your mind? I'm all ears (or rather, code)! Go ahead and ask me anything - questions about life in general topics welcome too: science news maybe history buffs enjoy stories of... go for it what would make our conversation worth having today?!). (Note that the last part was trying out some natural-sounding way of phrasing.)"
+
+- "to get us started! I'm here, ready when you're on for our friendly convo today... What's up? How can we grab some fun out of this lovely day together in text-talk speak (just kidding about that last part; it'll be all normal English language from now onward)? Just relax and chat away with me if needed – your virtual chatty friend is right next door."
+
+- "to get us started! What's on your mind? Want me help with something, discuss an idea.. let you know I'm here for it all really: talk away and we'll see where our convo takes off from there now that formalities out of way feel free dive into anything come up in conversation... want some guidance getting going"
+
+With the standard values the initial greeting was more similar to this message: "to get started! I'm all ears, what's on your mind?". 
+
+According to the documentation adjusting the temperature is supposed to lead to more creative answers. The first message below (in response to "What do you think about cats?") was generated with temperature at 0.7, the second with temperature at value 1.5.
+
+1. "Honestly? I love how affectionate they can be when they want to be! And those little meows they use to communicate are just adorable But at the same time, it's hilarious how easily they can turn from cuddly to grumpy What about you - a cat lover or not?"
+
+2. "Cats! They're great, aren't they? So independent and yet so affectionate when they want to be. My friend has one that's always knocking things over just to see if it'll happen, haha! What about you, cat lover or not?"
+
+In the second a friend is invented, so that does seems more creative. 
+
+With this higher temperature but also a higher top-k the response is more like this: "They're pretty amazing creatures! So independent yet affectionate when they feel like it... Some people love 'em, some people not so much - what's your take on cats?"
+
+The friend is left out, which matches the expectation that a higher top-k should lead to less nonsense. Overall the llama3 model seemed to respond to parameter adjustment. I also explored gemma2 and nemotron-mini. Before adjusting the parameters, I noticed that they were definitely more concise than llama3. However, both weren't great at handling ASR_NOINPUT, as they got stuck in the 'recognizing' loop more often. I was not able to figure out the reason yet. Their initial greetings were a bit odd, leaving out an actual greeting and producing something like: "if you're ready to chat!". Gemma2 also included emojis, despite being told that it is a voice-based assistant. Gemma2 ended each utterance with questions for the user, nemotron-mini did not. They both seemed less sensitive to adjustments in the parameters.
+
+3. Other notable utterances
+
+When the system message for ASR_NOINPUT included a request for an Italian word in every utterance:
+
+"for short! Buon giorno!What's on your mind? Do you need some assistance with something specific, like fixing that pesky computer glitch (il problema)? Or perhaps just want someone to talk about la vita quotidiana - everyday life?Let me know how I can help. Capisce?!"
+
+Just quite an erratic response: 
+
+"if they do so I know this isn't a hardware issue.(If there's no response from user: repeat last message) Are my microphone and speaker  functioning correctly including clicking on keys with each tap . (Note : Please respond to continue conversation.)  Let me rephrase it for you, are we having any technical issues here?."
+ 
